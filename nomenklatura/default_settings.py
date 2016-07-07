@@ -1,13 +1,7 @@
-DEBUG = True
-SECRET_KEY = 'no'
+DEBUG = False
+ASSETS_DEBUG = False
+APP_NAME = 'nomenklatura'
 SQLALCHEMY_DATABASE_URI = 'sqlite:///master.sqlite3'
 
-GITHUB_CLIENT_ID = 'da79a6b5868e690ab984'
-GITHUB_CLIENT_SECRET = '1701d3bd20bbb29012592fd3a9c64b827e0682d6'
-
-S3_BUCKET = 'nomenklatura.tmp'
-CELERY_BROKER = 'amqp://guest@localhost//'
-
-UPLOAD_FOLDER = '/tmp'
-ALLOWED_EXTENSIONS = set(['csv', 'tsv', 'ods', 'xls', 'xlsx', 'txt'])
-
+# GITHUB_CLIENT_ID = ''
+# GITHUB_CLIENT_SECRET = ''

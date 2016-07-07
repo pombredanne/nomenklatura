@@ -1,13 +1,10 @@
-import os
 import logging
 
 from flask import Flask
+from flask import url_for as _url_for
 from flask.ext.sqlalchemy import SQLAlchemy
-from flaskext.oauth import OAuth
-import certifi
-from pylibmc import Client as MemcacheClient
-from boto.s3.connection import S3Connection
-from celery import Celery
+from flask.ext.oauth import OAuth
+from flask.ext.assets import Environment
 
 from nomenklatura import default_settings
 
@@ -16,10 +13,10 @@ logging.basicConfig(level=logging.DEBUG)
 app = Flask(__name__)
 app.config.from_object(default_settings)
 app.config.from_envvar('NOMENKLATURA_SETTINGS', silent=True)
+app_name = app.config.get('APP_NAME')
 
 db = SQLAlchemy(app)
-s3 = S3Connection(app.config['S3_ACCESS_KEY'], app.config['S3_SECRET_KEY'])
-celery = Celery('nomenklatura', broker=app.config['CELERY_BROKER'])
+assets = Environment(app)
 
 oauth = OAuth()
 github = oauth.remote_app('github',
@@ -30,10 +27,10 @@ github = oauth.remote_app('github',
         consumer_key=app.config.get('GITHUB_CLIENT_ID'),
         consumer_secret=app.config.get('GITHUB_CLIENT_SECRET'))
 
-github._client.ca_certs = certifi.where()
-memcache = MemcacheClient(
-    servers=[app.config.get('MEMCACHE_HOST', '127.0.0.1:11211')],
-    username=os.environ.get('MEMCACHIER_USERNAME'),
-    password=os.environ.get('MEMCACHIER_PASSWORD'),
-    binary=True
-    )
+
+def url_for(*a, **kw):
+    try:
+        kw['_external'] = True
+        return _url_for(*a, **kw)
+    except RuntimeError:
+        return None

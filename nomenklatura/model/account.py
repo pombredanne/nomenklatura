@@ -1,12 +1,7 @@
 from datetime import datetime
-from uuid import uuid4
 
 from nomenklatura.core import db
-from nomenklatura.model.common import JsonType, DataBlob
-
-
-def make_key():
-    return unicode(uuid4())
+from nomenklatura.model.common import make_key
 
 
 class Account(db.Model):
@@ -19,29 +14,21 @@ class Account(db.Model):
     api_key = db.Column(db.Unicode, default=make_key)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow,
-            onupdate=datetime.utcnow)
+                           onupdate=datetime.utcnow)
 
     datasets = db.relationship('Dataset', backref='owner',
                                lazy='dynamic')
-    uploads = db.relationship('Upload', backref='creator',
-                               lazy='dynamic')
     entities_created = db.relationship('Entity', backref='creator',
-                               lazy='dynamic')
-    aliases_created = db.relationship('Alias', backref='creator',
-                        primaryjoin='Alias.creator_id==Account.id',
-                               lazy='dynamic')
-    aliases_matched = db.relationship('Alias', backref='matcher',
-                        primaryjoin='Alias.matcher_id==Account.id',
-                               lazy='dynamic')
+                                       lazy='dynamic')
 
-    def as_dict(self):
+    def to_dict(self):
         return {
             'id': self.id,
             'github_id': self.github_id,
             'login': self.login,
-            'created_at': self.created_at, 
+            'created_at': self.created_at,
             'updated_at': self.updated_at,
-            }
+        }
 
     @classmethod
     def by_id(cls, id):
@@ -66,8 +53,6 @@ class Account(db.Model):
         return account
 
     def update(self, data):
-        account.login = data['login']
-        account.email = data.get('email')
+        self.login = data['login']
+        self.email = data.get('email')
         db.session.add(self)
-
-

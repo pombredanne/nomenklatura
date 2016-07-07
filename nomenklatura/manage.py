@@ -1,22 +1,19 @@
-from flaskext.script import Manager
+from flask.ext.script import Manager
+from flask.ext.assets import ManageAssets
 
-from nomenklatura.core import app, db
-from nomenklatura.model import *
-from nomenklatura import web
+from nomenklatura.core import db
+from nomenklatura.views import app
+from nomenklatura.assets import assets
 
 manager = Manager(app)
+manager.add_command('assets', ManageAssets(assets))
+
 
 @manager.command
 def createdb():
     """ Make the database. """
     db.create_all()
 
-@manager.command
-def updb():
-    """ Update the database. """
-    db.engine.execute('ALTER TABLE "link" ADD COLUMN "data" TEXT')
-    db.engine.execute("""UPDATE "link" SET "data" = '{}'""")
-    db.session.commit()
 
 @manager.command
 def flush(dataset):
@@ -25,27 +22,9 @@ def flush(dataset):
         db.session.delete(alias)
     db.session.commit()
 
-@manager.command
-def dedup(dataset):
-    ds = Dataset.by_name(dataset)
-    from time import time
-    from nomenklatura.matching import match
-    begin = time()
-    for value in Value.all(ds).limit(20):
-        matches = match(value.value, ds)
-        matches = filter(lambda (c,v,s): v!=value.id, matches)
-        print [value.value, '=?', matches[0][1], matches[0][2]]
-    print "Time: %.2fms" % ((time() - begin)*1000)
 
-@manager.command
-def cleanup():
-    """ Clean up the database. """
-    for dataset in Dataset.all():
-        for alias in Alias.all_unmatched(dataset):
-            db.session.delete(alias)
-        db.session.flush()
-    db.session.commit()
-
-if __name__ == '__main__':
+def main():
     manager.run()
 
+if __name__ == '__main__':
+    main()
